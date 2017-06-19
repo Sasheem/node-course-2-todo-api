@@ -1,58 +1,48 @@
-// load in mongoose
-var mongoose = require('mongoose');
+// library imports
+var express = require('express');
+var bodyParser = require('body-parser');
 
-// with these two lines mongoose is set up
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/TodoApp');    // connect to db
+// local imports
+var {mongoose} = require('./db/mongoose.js')
+var {Todo} = require('./models/todo');
+var {User} = require('./models/user');
 
-// create a model to specify attributes for documents we want to store
-var Todo = mongoose.model('Todo', {
-  text: {
-    type: String,
-    required: true,
-    minlength: 1,
-    trim: true          // removes any leading and trailing whitespace
-  },
-  completed: {
-    type: Boolean,
-    default: false
-  },
-  completedAt: {
-    type: Number,
-    default: null
-  }
+// set up express application
+var app = express();
+
+// get body data that was sent from client
+app.use(bodyParser.json());
+
+// configure routes
+// POST route will allow us to make new todos
+app.post('/todos', (req, res) => {
+   var todo = new Todo({
+     text: req.body.text
+   });
+
+   todo.save().then((doc) => {
+     res.send(doc);
+   }, (e) => {
+     res.status(400).send(e);
+   });
 });
 
-// set up a variable to get saved to mongodb
-// var newTodo = new Todo({
-//   text: 'cook dinner'
-// });
 
-// saves new document to mongodb
-// newTodo.save().then((doc) => {
-//   console.log(JSON.stringify(doc, undefined, 2));
-// }, (e) => {
-//   console.log('unable to save todo', e);
-// });
 
-// make a new user model -
-// email: require it, trim it, set type, set min length of 1
-// password: require it, trim it, set type, set min length of 1
-var User = mongoose.model('User', {
-  email: {
-    type: String,
-    required: true,
-    minlength: 1,
-    trim: true
-  }
+// sets up port .. eventually going on heroku. local port 3000 for now
+app.listen(3000, () => {
+  console.log('server started on port 3000');
 });
 
-var newUser = new User({
-  email: 'sts12@me.com'
-});
 
-newUser.save().then((doc) => {
-  console.log(JSON.stringify(doc, undefined, 2));
-}, (e) => {
-  console.log('unable to save user', e);
-});
+/*
+  what we are going to do
+  CRUD - create read update delete
+
+  create a resource, use POST http method, send resource as the body
+
+  so to make a new todo, send JSON object over to server that has a text property
+  server will take that text property, create new model. then it will send that
+    complete model (with the id, completed properrty and completedAt) back to client
+
+*/
