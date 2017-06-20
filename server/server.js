@@ -45,20 +45,20 @@ app.get('/todos', (req, res) => {
 app.get('/todos/:id', (req, res) => {
   var id = req.params.id;
 
-  // error case - todo id isn't valid
+  // error case 1 - todo id isn't valid
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();               // sending empty body to protect user info
   }
 
   Todo.findById(id).then((todo) => {
-    // error case - todo doesn't exist
+    // error case 2 - todo doesn't exist
     if (!todo) {
       return res.status(404).send();      // sending empty body to protect user info
     }
-    // success case - send todo back as object
+    // success case 1 - send todo back as object
     res.send({todo});
   }).catch((e) => {
-    // error case - bad request?
+    // error case 3 - bad request?
     res.status(400).send();
   });
 
