@@ -102,6 +102,7 @@ describe('GET /todos/:id', () => {
       .end(done);
   });
 
+  // test if todo not in todos return 404
   it('should return a 404 if todo not found', (done) => {
     var hexId = new ObjectID().toHexString();
 
@@ -111,6 +112,7 @@ describe('GET /todos/:id', () => {
       .end(done);
   });
 
+  // tests if invalid ids return 404
   it('should return a 404 for non-object ids', (done) => {
 
     request(app)
