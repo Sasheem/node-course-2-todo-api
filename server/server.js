@@ -27,6 +27,18 @@ app.post('/todos', (req, res) => {
    });
 });
 
+// GET route will return todos to show them to user
+app.get('/todos', (req, res) => {
+  Todo.find().then((todos) => {
+    // success case when promise gets resolved
+    res.send({todos});
+  }, (e) => {
+    // fail case promise rejected
+    res.status(400).send(e);
+  });
+  // when authentication added you will retrieve one single todo. for now find all
+});
+
 // sets up port .. eventually going on heroku. local port 3000 for now
 app.listen(3000, () => {
   console.log('server started on port 3000');
