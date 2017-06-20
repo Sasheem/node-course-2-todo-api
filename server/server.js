@@ -1,6 +1,7 @@
 // library imports
-var express = require('express');
+var express = require('express');                  // why use var instead const?
 var bodyParser = require('body-parser');
+var {ObjectID} = require('mongodb');
 
 // local imports
 var {mongoose} = require('./db/mongoose.js')
@@ -37,6 +38,30 @@ app.get('/todos', (req, res) => {
     res.status(400).send(e);
   });
   // when authentication added you will retrieve one single todo. for now find all
+});
+
+// STRUCTURE FOR URL WE ARE GOING TO GRAB FROM
+// GET /todos/id
+app.get('/todos/:id', (req, res) => {
+  var id = req.params.id;
+
+  // error case - todo id isn't valid
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();               // sending empty body to protect user info
+  }
+
+  Todo.findById(id).then((todo) => {
+    // error case - todo doesn't exist
+    if (!todo) {
+      return res.status(404).send();      // sending empty body to protect user info
+    }
+    // success case - send todo back as object
+    res.send({todo});
+  }).catch((e) => {
+    // error case - bad request?
+    res.status(400).send();
+  });
+
 });
 
 // sets up port .. eventually going on heroku. local port 3000 for now
