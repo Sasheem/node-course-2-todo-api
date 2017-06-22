@@ -70,6 +70,27 @@ app.listen(port, () => {
   console.log(`server started on port ${port}`);
 });
 
+// DELETE ROUTE
+app.delete('/todos/:id', (req, res) => {
+  // get the id
+  var id = req.params.id;
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  Todo.findByIdAndRemove(id).then((todo) => {
+    // check for empty todo
+    if (!todo) {
+      return res.status(404).send();
+    }
+    // success - send doc back w/ 200 code
+    res.send({todo});
+  }).catch((e) => {
+    res.status(400).send();
+  });
+});
+
 module.exports = {app};
 
 /*
