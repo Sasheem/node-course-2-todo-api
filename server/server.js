@@ -1,17 +1,19 @@
+require('./config/config');
+
 // library imports
 const _ = require('lodash');
-const express = require('express');                  // why use var instead const?
+const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 
 // local imports
-var {mongoose} = require('./db/mongoose.js')
+var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
 
 // set up express application
 var app = express();
-const port = process.env.PORT || 3000;      // may or may not be set, depending if run locally or not
+const port = process.env.PORT;
 
 // get body data that was sent from client
 app.use(bodyParser.json());
@@ -93,7 +95,6 @@ app.patch('/todos/:id', (req, res) => {
   // array arg contains subset of things user passed to us, we don't want the user
   // to be able to change anything they choose
   var body = _.pick(req.body, ['text', 'completed']);
-
 
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
