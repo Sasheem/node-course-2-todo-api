@@ -1,7 +1,8 @@
 // library imports
-var express = require('express');                  // why use var instead const?
-var bodyParser = require('body-parser');
-var {ObjectID} = require('mongodb');
+const _ = require('lodash');
+const express = require('express');                  // why use var instead const?
+const bodyParser = require('body-parser');
+const {ObjectID} = require('mongodb');
 
 // local imports
 var {mongoose} = require('./db/mongoose.js')
@@ -65,11 +66,6 @@ app.get('/todos/:id', (req, res) => {
 
 });
 
-// sets up port .. eventually going on heroku. local port 3000 for now
-app.listen(port, () => {
-  console.log(`server started on port ${port}`);
-});
-
 // DELETE ROUTE
 app.delete('/todos/:id', (req, res) => {
   // get the id
@@ -89,6 +85,42 @@ app.delete('/todos/:id', (req, res) => {
   }).catch((e) => {
     res.status(400).send();
   });
+});
+
+// PATCH ROUTE
+app.patch('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  // array arg contains subset of things user passed to us, we don't want the user
+  // to be able to change anything they choose
+  var body = _.pick(req.body, ['text', 'completed']);
+
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  // checking completed value, using that to set completedAt to a timestamp
+  if (_.isBoolean(body.completed) && body.completed) {
+    body.completedAt = new Date().getTime();
+  } else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  // query to update db
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
+    }
+    res.send({todo});
+  }).catch((e) => {
+    res.status(400).send();
+  })
+});
+
+// sets up port .. eventually going on heroku. local port 3000 for now
+app.listen(port, () => {
+  console.log(`server started on port ${port}`);
 });
 
 module.exports = {app};
