@@ -116,8 +116,25 @@ app.patch('/todos/:id', (req, res) => {
     res.send({todo});
   }).catch((e) => {
     res.status(400).send();
-  })
+  });
 });
+
+// POST /users
+// we used POST create todos so we will do the same for users
+// use pick to pick off email and password from user object
+app.post('/users', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+  var user = new User(body);
+
+  user.save().then(() => {
+    return user.generateAuthToken();
+  }).then((token) => {
+    res.header('x-auth', token).send(user);
+  }).catch((e) => {
+    res.status(400).send(e);
+  });
+});
+
 
 // sets up port .. eventually going on heroku. local port 3000 for now
 app.listen(port, () => {
