@@ -10,6 +10,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 // set up express application
 var app = express();
@@ -135,6 +136,12 @@ app.post('/users', (req, res) => {
   });
 });
 
+
+
+// GET /users/me
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
+});
 
 // sets up port .. eventually going on heroku. local port 3000 for now
 app.listen(port, () => {

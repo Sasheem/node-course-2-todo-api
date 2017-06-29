@@ -45,6 +45,7 @@ UserSchema.methods.toJSON = function () {
 // arrow functions don't store a 'this' keyword and we need that to access
 // the individual docuement
 UserSchema.methods.generateAuthToken = function () {
+  // instance methods get user called as individual document
   var user = this;
   var access = 'auth';
   var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
@@ -52,9 +53,39 @@ UserSchema.methods.generateAuthToken = function () {
   user.tokens.push({access, token});
 
   // ???? WHAT THE FUUUUUUCCCKKKK
-  // the outer return says run the ifstatement and return the value from within the fulfilled promise
+  // the outer return says 'run the ifstatement and return the value from within the fulfilled promise'?
   return user.save().then(() => {
     return token;
+  });
+};
+
+// added to statics object gets turn to to a model method,
+// added to methods object gets turn to instance method
+UserSchema.statics.findByToken = function (token) {
+  // token arg b/c we can go thru process of verifying it
+  // finding associated user and returning it
+  // model methods get called with the model as the 'this' binding
+  var User = this;
+  var decoded;
+  // going to call as undefined for now b/c jwt.verify will throw errors if something goes wrong
+
+  // hence why we do the try & catch block
+  try {
+    decoded = jwt.verify(token, 'abc123');
+  } catch (e) {
+    // return a promise that is always going to reject
+    // return new Promise((resolve, reject) => {
+    //   reject();
+    // });
+    return Promise.reject();
+  }
+
+  // success case
+  // by returning promise we can chain another then call onto findByToken in server.js
+  return User.findOne({
+    '_id': decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'         // won't be hardcoded for long
   });
 };
 
