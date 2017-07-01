@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema({
   email: {
@@ -73,10 +74,6 @@ UserSchema.statics.findByToken = function (token) {
   try {
     decoded = jwt.verify(token, 'abc123');
   } catch (e) {
-    // return a promise that is always going to reject
-    // return new Promise((resolve, reject) => {
-    //   reject();
-    // });
     return Promise.reject();
   }
 
@@ -88,6 +85,30 @@ UserSchema.statics.findByToken = function (token) {
     'tokens.access': 'auth'         // won't be hardcoded for long
   });
 };
+
+
+UserSchema.pre('save', function (next) {
+  // why use lowercase user? instead of uppercase User?
+  // so I am using an instance of the individual document
+  var user = this;
+
+   // check if password was modified
+   if (user.isModified('password')) {
+     // yes it was modified, make call to genSalt and hash
+     // why do we want to only encrypt if password was just modified?
+     // doesn't that mean it was already hashed and salted?
+
+     bcrypt.genSalt(10, (err, salt) => {
+       bcrypt.hash(user.password, salt, (err, hash) => {
+         user.password = hash;
+         next();
+       });
+     });
+   } else {
+     // not modified
+     next();
+   }
+});
 
 var User = mongoose.model('User', UserSchema);
 
