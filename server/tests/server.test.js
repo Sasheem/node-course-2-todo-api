@@ -153,6 +153,7 @@ describe('DELETE /todos/:id', () => {
   });
 });
 
+// all tests to update a todo
 describe('PATCH /todos/:id', () => {
 
   it('should update the todo', (done) => {
@@ -197,6 +198,7 @@ describe('PATCH /todos/:id', () => {
   });
 });
 
+// all tests for getting a user
 describe('GET /users/me', () => {
   // when a valid auth token is provided
   it('should return user if authenticated', (done) => {
@@ -228,7 +230,9 @@ describe('GET /users/me', () => {
   });
 });
 
+// all tests for saving user to db
 describe('POST /users', () => {
+
   it('should create a user', (done) => {
     var email = 'example@example.com';
     var password = '123mnb';
