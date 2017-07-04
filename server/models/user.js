@@ -53,7 +53,6 @@ UserSchema.methods.generateAuthToken = function () {
 
   user.tokens.push({access, token});
 
-  // ???? WHAT THE FUUUUUUCCCKKKK
   // the outer return says 'run the ifstatement and return the value from within the fulfilled promise'?
   return user.save().then(() => {
     return token;
@@ -83,6 +82,26 @@ UserSchema.statics.findByToken = function (token) {
     '_id': decoded._id,
     'tokens.token': token,
     'tokens.access': 'auth'         // won't be hardcoded for long
+  });
+};
+
+UserSchema.statics.findByCredentials = function (email, password) {
+  // find a user where the email passed in matches one to a user
+  var User = this;
+
+  return User.findOne({email}).then((user) => {
+    if (!user) {
+      return Promise.reject();      // will return to the catch(e) in server.js
+    }
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (res) {
+          resolve(user);            // will return to then() in server.js
+        } else {
+          reject();                 // will return to the catch(e) in server.js
+        }
+      });
+    });
   });
 };
 

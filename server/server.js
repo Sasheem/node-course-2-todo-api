@@ -136,11 +136,23 @@ app.post('/users', (req, res) => {
   });
 });
 
-
-
 // GET /users/me
 app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
+});
+
+// POST /users/login {email, password}
+// find a user in db with same email, and a hash password that equals arg password
+app.post('/users/login', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+
+  User.findByCredentials(body.email, body.password).then((user) => {
+    user.generateAuthToken().then((token) => {
+      res.header('x-auth', token).send(user);
+    });
+  }).catch((e) => {
+    res.status(400).send(e);
+  });
 });
 
 // sets up port .. eventually going on heroku. local port 3000 for now
