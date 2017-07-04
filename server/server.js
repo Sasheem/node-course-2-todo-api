@@ -120,9 +120,7 @@ app.patch('/todos/:id', (req, res) => {
   });
 });
 
-// POST /users
-// we used POST create todos so we will do the same for users
-// use pick to pick off email and password from user object
+// POST /users private route
 app.post('/users', (req, res) => {
   var body = _.pick(req.body, ['email', 'password']);
   var user = new User(body);
@@ -136,13 +134,12 @@ app.post('/users', (req, res) => {
   });
 });
 
-// GET /users/me
+// GET /users/me private route
 app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
 });
 
-// POST /users/login {email, password}
-// find a user in db with same email, and a hash password that equals arg password
+// POST /users/login private route
 app.post('/users/login', (req, res) => {
   var body = _.pick(req.body, ['email', 'password']);
 
