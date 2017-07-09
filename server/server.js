@@ -21,9 +21,10 @@ app.use(bodyParser.json());
 
 // configure routes
 // POST route will allow us to make new todos
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
    var todo = new Todo({
-     text: req.body.text
+     text: req.body.text,
+     _creator: req.user._id
    });
 
    todo.save().then((doc) => {
@@ -34,8 +35,10 @@ app.post('/todos', (req, res) => {
 });
 
 // GET route will return todos to show them to user
-app.get('/todos', (req, res) => {
-  Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+  Todo.find({
+    _creator: req.user._id
+  }).then((todos) => {
     // success case when promise gets resolved
     res.send({todos});
   }, (e) => {
@@ -47,7 +50,7 @@ app.get('/todos', (req, res) => {
 
 // STRUCTURE FOR URL WE ARE GOING TO GRAB FROM
 // GET /todos/id
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate,  (req, res) => {
   var id = req.params.id;
 
   // error case 1 - todo id isn't valid
@@ -55,7 +58,10 @@ app.get('/todos/:id', (req, res) => {
     return res.status(404).send();               // sending empty body to protect user info
   }
 
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     // error case 2 - todo doesn't exist
     if (!todo) {
       return res.status(404).send();      // sending empty body to protect user info
@@ -70,7 +76,7 @@ app.get('/todos/:id', (req, res) => {
 });
 
 // DELETE ROUTE
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   // get the id
   var id = req.params.id;
 
@@ -78,7 +84,10 @@ app.delete('/todos/:id', (req, res) => {
     return res.status(404).send();
   }
 
-  Todo.findByIdAndRemove(id).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     // check for empty todo
     if (!todo) {
       return res.status(404).send();
@@ -91,7 +100,7 @@ app.delete('/todos/:id', (req, res) => {
 });
 
 // PATCH ROUTE
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;
   // array arg contains subset of things user passed to us, we don't want the user
   // to be able to change anything they choose
@@ -110,7 +119,11 @@ app.patch('/todos/:id', (req, res) => {
   }
 
   // query to update db
-  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+  // change to findOneAndUpdate
+  Todo.findOneAndUpdate({
+    _id: id,
+    _creator: req.user._id
+  }, {$set: body}, {new: true}).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -134,7 +147,7 @@ app.post('/users', (req, res) => {
   });
 });
 
-// GET /users/me private route
+// GET /users/me private route to fetch logged in user details
 app.get('/users/me', authenticate, (req, res) => {
   res.send(req.user);
 });
@@ -152,7 +165,7 @@ app.post('/users/login', (req, res) => {
   });
 });
 
-// DELETE /users/me/token
+// DELETE /users/me/token logout route
 app.delete('/users/me/token', authenticate, (req, res) => {
   req.user.removeToken(req.token).then(() => {
     res.status(200).send();
