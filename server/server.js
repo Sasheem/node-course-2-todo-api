@@ -1,3 +1,4 @@
+// local imports
 require('./config/config');
 
 // library imports
@@ -72,7 +73,6 @@ app.get('/todos/:id', authenticate,  (req, res) => {
     // error case 3 - bad request?
     res.status(400).send();
   });
-
 });
 
 // DELETE ROUTE
